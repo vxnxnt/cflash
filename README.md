@@ -12,11 +12,18 @@ First step is to clone the repo.
 $ git clone https://github.com/vxnxnt/cflash.git
 $ cd cflash
 ```
-Then compile clash.
+Then compile cflash.
 ```
 $ gcc -o cflash cflash.c
 ```
 And finally add cflash to a directory in $PATH.
 ```
 $ cp cflash /usr/bin
+```
+
+## Usage
+To use cflash, simply execute the binary with a source and destination file.
+For example, you could do the following if you want to flash `/dev/sda` with a Debian image. 
+```
+$ cflash debian-12.11.0-amd64-netinst.iso /dev/sda
 ```
