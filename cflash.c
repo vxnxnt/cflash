@@ -32,15 +32,16 @@ int sanityCheck(int argLen, char* filePath, char* devPath) {
 
 // Abort mission if device is mounted
 int isMounted(char* devPath) {
-    struct stat mtabStat;
+    char mtab[] = "/etc/mtab";
 
-    int fd = open("/etc/mtab", O_RDONLY);
+    int fd = open(mtab, O_RDONLY);
     if (fd == -1) {
         perror("Error:");
         return -1;
     }
 
-    int fileSize = mtabStat.st_size;
+    // make buffer big enough using big enough number
+    int fileSize = 512 * 1024;
     char* buffer = (char*)malloc(fileSize);
 
     read(fd, buffer, fileSize);
