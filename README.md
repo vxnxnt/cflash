@@ -7,23 +7,25 @@ A child process is created to write to the drive using dd, after which sync is c
 to ensure all data is written.
 
 ## Installation
-First step is to clone the repo.
+Clone the repo and install cflash with make:
 ```
-$ git clone https://github.com/vxnxnt/cflash.git
-$ cd cflash
+git clone https://github.com/vxnxnt/cflash.git
+cd cflash
+make
+sudo make install
 ```
-Then compile cflash.
+
+To uninstall with make:
 ```
-$ gcc -o cflash cflash.c
-```
-And finally add cflash to a directory in $PATH.
-```
-$ cp cflash /usr/bin
+sudo make uninstall
 ```
 
 ## Usage
 To use cflash, simply execute the binary with a source and destination file.
+```
+cflash [source] [destination]
+```
 For example, you could do the following if you want to flash `/dev/sda` with a Debian image. 
 ```
-$ cflash debian-12.11.0-amd64-netinst.iso /dev/sda
+cflash debian-12.11.0-amd64-netinst.iso /dev/sda
 ```
