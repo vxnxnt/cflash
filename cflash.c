@@ -6,24 +6,12 @@
 #include <string.h>
 #include <fcntl.h>
 
-int sanityCheck(int argLen, char* filePath, char* devPath) {
+int sanityCheck(char* file) {
     struct stat fileStat;
 
-    if (argLen != 3) {
-        printf("Error: invalid number of arguments\n");
-        printf("Usage: cflash [source] [destination]\n");
-        return -1;
-    }
-
     // Check file path validity
-    if (stat(filePath, &fileStat) == -1) {
+    if (stat(file, &fileStat) == -1) {
         perror("Bad file path");
-        return -1;
-    }
-
-    // Check device path validity
-    if (stat(devPath, &fileStat) == -1) {
-        perror("Bad device path");
         return -1;
     }
 
@@ -42,11 +30,11 @@ int isMounted(char* devPath) {
 
     // make buffer big enough using big enough number
     int fileSize = 512 * 1024;
-    char* buffer = (char*)malloc(fileSize);
+    char* buffer = malloc(fileSize);
 
     read(fd, buffer, fileSize);
 
-    if (strstr(buffer, devPath) != NULL) {
+    if (strstr(buffer, devPath)) {
         printf("Caution: %s is a mounted filesystem\n", devPath);
         free(buffer);
         return -1;
@@ -103,17 +91,26 @@ int syncData() {
 }
 
 int main(int argc, char *argv[]) {
-    int argLen = argc;
-    char* filePath = argv[1];
-    char* devPath = argv[2];
+    char* checksumPath = NULL;
+    char* filePath = NULL;
+    char* devPath = NULL;
 
-    if (sanityCheck(argLen, filePath, devPath) != 0) {
-        return -1;
+    if (argc < 3) {
+        if (strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--help") == 0) {
+            printf("Usage: cflash [option] [source] [destination]\n");
+            return 0;
+        } else {
+            printf("Error: invalid arguments\n");
+            printf("Try the -h option to get help\n");
+            return -1;
+        }
     }
 
-    if (isMounted(devPath) != 0) {
-        return -1;
-    }
+    filePath = argv[1];
+    devPath = argv[2];
+
+    if (sanityCheck(filePath) || sanityCheck(devPath) == -1) return -1;
+    if (isMounted(devPath) == -1) return -1;
 
     flashDevice(filePath, devPath);
     wait(NULL); // Wait for dd process before syncing
