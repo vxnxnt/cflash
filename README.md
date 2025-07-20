@@ -21,10 +21,12 @@ sudo make uninstall
 ```
 
 ## Usage
-To use cflash, simply execute the binary with a source and destination file.
+To use cflash, simply execute the binary with a source and destination file.\
+To get help using cflash, try the `-h` or `--help` option.
 ```
-cflash [source] [destination]
+cflash [option] [source] [destination]
 ```
+
 For example, you could do the following if you want to flash `/dev/sda` with a Debian image. 
 ```
 cflash debian-12.11.0-amd64-netinst.iso /dev/sda
