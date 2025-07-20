@@ -9,35 +9,24 @@
 void digestFile (const unsigned char *message, size_t messageLen, unsigned char **digest, unsigned int *digestLen) {
     EVP_MD_CTX *mdctx;
 
-    if((mdctx = EVP_MD_CTX_new()) == NULL) {
-        perror("EVP_MD_CTX_new");
-    }
-
-    if(EVP_DigestInit_ex(mdctx, EVP_sha256(), NULL) != 1) {
-        perror("EVP_DigestInit_ex");
-    }
-
-    if(EVP_DigestUpdate(mdctx, message, messageLen) != 1) {
-        perror("EVP_DigestUpdate");
-    }
-
-    if((*digest = (unsigned char *)OPENSSL_malloc(EVP_MD_size(EVP_sha256()))) == NULL) {
-        perror("OPENSSL_malloc");
-    }
-
-    if(EVP_DigestFinal_ex(mdctx, *digest, digestLen) != 1) {
-        perror("EVP_DigestFinal_ex");
-    }
+    // Hash file content using sha256
+    if((mdctx = EVP_MD_CTX_new()) == NULL) perror("EVP_MD_CTX_new");
+    if(EVP_DigestInit_ex(mdctx, EVP_sha256(), NULL) != 1) perror("EVP_DigestInit_ex");
+    if(EVP_DigestUpdate(mdctx, message, messageLen) != 1) perror("EVP_DigestUpdate");
+    if((*digest = (unsigned char *)OPENSSL_malloc(EVP_MD_size(EVP_sha256()))) == NULL) perror("OPENSSL_malloc");
+    if(EVP_DigestFinal_ex(mdctx, *digest, digestLen) != 1) perror("EVP_DigestFinal_ex");
 
     EVP_MD_CTX_free(mdctx);
 }
 
+// Convert binary sha256 hash to hexadecimal
 void convertDigest (unsigned const char* digest, char* result) {
-    for(int i = 0; i < SHA256_DIGEST_LENGTH; i++)
+    for (int i = 0; i < SHA256_DIGEST_LENGTH; i++)
     {
         sprintf(result + (i * 2), "%02x", digest[i]);
     }
 
+    // Add null byte
     result[64] = 0;
 }
 
@@ -65,6 +54,7 @@ int readFile (char* path, char* result) {
 
     digestFile(buffer, fileSize, &digest, &digest_len);
     convertDigest(digest, result);
+
     OPENSSL_free(digest);
     free(buffer);
     close(fd);
@@ -91,6 +81,7 @@ int compareDigest (char* digestResult, char* sigFile) {
 
     read(fd, buffer, sigFileSize);
 
+    // Compare sha256 hashes which are 64 bytes
     if (strncmp(digestResult, buffer, 64) != 0) {
         printf("Warning: sha256 digests differ!\n");
         return -1;
