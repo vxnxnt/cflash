@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <fcntl.h>
+#include "digest.h"
 
 int sanityCheck(char* file) {
     struct stat fileStat;
@@ -31,6 +32,11 @@ int isMounted(char* devPath) {
     // make buffer big enough using big enough number
     int fileSize = 512 * 1024;
     char* buffer = malloc(fileSize);
+    if (!buffer) {
+        perror("Error:");
+        return -1;
+    }
+
 
     read(fd, buffer, fileSize);
 
@@ -91,26 +97,43 @@ int syncData() {
 }
 
 int main(int argc, char *argv[]) {
-    char* checksumPath = NULL;
+    char* sigFile = NULL;
     char* filePath = NULL;
     char* devPath = NULL;
 
     if (argc < 3) {
         if (strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--help") == 0) {
-            printf("Usage: cflash [option] [source] [destination]\n");
+            printf("Usage:\n    cflash [option] [source] [destination]\n\n");
+            printf("Options:\n");
+            printf("    -h, --help        shows list of command-line options\n");
+            printf("    -c                crosscheck the sha256 signature of a file\n");
             return 0;
-        } else {
-            printf("Error: invalid arguments\n");
-            printf("Try the -h option to get help\n");
-            return -1;
         }
-    }
 
-    filePath = argv[1];
-    devPath = argv[2];
+        printf("Error: invalid arguments\n");
+        printf("Try the -h option to get help\n");
+        return -1;
+
+    } else if (argc > 3) {
+        if (strcmp(argv[1], "-c") == 0) {
+            sigFile = argv[2];
+            filePath = argv[3];
+            devPath = argv[4];
+        }
+
+    } else if (argc == 3) {
+        filePath = argv[1];
+        devPath = argv[2];
+    }
 
     if (sanityCheck(filePath) || sanityCheck(devPath) == -1) return -1;
     if (isMounted(devPath) == -1) return -1;
+
+    if (sigFile) {
+        char digestResult[65];
+        if (readFile(filePath, digestResult) == -1) return -1;
+        if (compareDigest(digestResult, sigFile) == -1) return -1;
+    }
 
     flashDevice(filePath, devPath);
     wait(NULL); // Wait for dd process before syncing

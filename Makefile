@@ -1,7 +1,7 @@
 CC = gcc
 
 cflash: cflash.c
-	${CC} cflash.c -o cflash
+	${CC} -o cflash cflash.c digest.c -lssl -lcrypto
 
 install: cflash
 	cp cflash /usr/local/bin/cflash
