@@ -37,6 +37,7 @@ int isMounted(char* devPath) {
         return -1;
     }
 
+    memset(buffer, 0x0, fileSize);
 
     read(fd, buffer, fileSize);
 
@@ -101,7 +102,7 @@ int main(int argc, char *argv[]) {
     char* filePath = NULL;
     char* devPath = NULL;
 
-    if (argc < 3) {
+    if (argc == 2) {
         if (strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--help") == 0) {
             printf("Usage:\n    cflash [option] [source] [destination]\n\n");
             printf("Options:\n");
@@ -110,11 +111,7 @@ int main(int argc, char *argv[]) {
             return 0;
         }
 
-        printf("Error: invalid arguments\n");
-        printf("Try the -h option to get help\n");
-        return -1;
-
-    } else if (argc > 3) {
+    } else if (argc == 5) {
         if (strcmp(argv[1], "-c") == 0) {
             sigFile = argv[2];
             filePath = argv[3];
@@ -124,6 +121,11 @@ int main(int argc, char *argv[]) {
     } else if (argc == 3) {
         filePath = argv[1];
         devPath = argv[2];
+
+    } else {
+        printf("Error: invalid arguments\n");
+        printf("Try the -h option to get help\n");
+        return -1;
     }
 
     if (sanityCheck(filePath) || sanityCheck(devPath) == -1) return -1;

@@ -50,6 +50,8 @@ int readFile (char* path, char* result) {
         return -1;
     }
 
+    memset(buffer, 0, fileSize);
+
     read(fd, buffer, fileSize);
 
     digestFile(buffer, fileSize, &digest, &digest_len);
@@ -79,7 +81,12 @@ int compareDigest (char* digestResult, char* sigFile) {
         return -1;
     }
 
-    read(fd, buffer, sigFileSize);
+    memset(buffer, 0, sigFileSize);
+
+    if (read(fd, buffer, sigFileSize) < 65) {
+        perror("Digest in File is too small!");
+        return -1;
+    }
 
     // Compare sha256 hashes which are 64 bytes
     if (strncmp(digestResult, buffer, 64) != 0) {
@@ -87,7 +94,6 @@ int compareDigest (char* digestResult, char* sigFile) {
         return -1;
     }
 
-    printf(buffer);
     printf("sha256 digests match!\n");
 
     free(buffer);
