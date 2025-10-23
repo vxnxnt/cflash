@@ -107,15 +107,17 @@ int main(int argc, char *argv[]) {
             printf("Usage:\n    cflash [option] [source] [destination]\n\n");
             printf("Options:\n");
             printf("    -h, --help        shows list of command-line options\n");
-            printf("    -c                crosscheck the sha256 signature of a file\n");
+            printf("    -c                crosscheck the sha256 signature of a file\n\n");
+            printf("    Examples:         cflash -c debian.sha256 debian.iso\n");
+            printf("                      cflash -c debian.sha256 debian.iso /dev/sdx\n");
             return 0;
         }
 
-    } else if (argc == 5) {
+    } else if (argc == 4 || argc == 5) {
         if (strcmp(argv[1], "-c") == 0) {
             sigFile = argv[2];
             filePath = argv[3];
-            devPath = argv[4];
+            if (argc == 5) devPath = argv[4];
         }
 
     } else if (argc == 3) {
@@ -128,8 +130,8 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
-    if (sanityCheck(filePath) || sanityCheck(devPath) == -1) return -1;
-    if (isMounted(devPath) == -1) return -1;
+    if (devPath && sanityCheck(devPath) == -1 && isMounted(devPath) == -1) return -1;
+    if (sanityCheck(filePath) == -1) return -1;
 
     if (sigFile) {
         char digestResult[65];
@@ -137,9 +139,11 @@ int main(int argc, char *argv[]) {
         if (compareDigest(digestResult, sigFile) == -1) return -1;
     }
 
-    flashDevice(filePath, devPath);
-    wait(NULL); // Wait for dd process before syncing
-    syncData();
+    if (devPath) {
+        flashDevice(filePath, devPath);
+        wait(NULL); // Wait for dd process before syncing
+        syncData();
+    }
 
     return 0;
 }

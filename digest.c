@@ -88,7 +88,7 @@ int compareDigest (char* digestResult, char* sigFile) {
         return -1;
     }
 
-    // Compare sha256 hashes which are 64 bytes
+    // Compare sha256 hashes which are 64 bytes!
     if (strncmp(digestResult, buffer, 64) != 0) {
         printf("Warning: sha256 digests differ!\n");
         return -1;
