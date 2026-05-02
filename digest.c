@@ -6,6 +6,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+char* fileBuffer = NULL;
+
 void digestFile (const unsigned char *message, size_t messageLen, unsigned char **digest, unsigned int *digestLen) {
     EVP_MD_CTX *mdctx;
 
@@ -64,40 +66,62 @@ int readFile (char* path, char* result) {
     return 0;
 }
 
-int compareDigest (char* digestResult, char* sigFile) {
+int digestSigFile (char* sigFile) {
     struct stat sigFileStat;
     if (stat(sigFile, &sigFileStat) == -1) {
-        perror("Error stating: sigFile");
+        perror("Error statting sigFile");
         return -1;
     }
 
     int fd = open(sigFile, O_RDONLY);
-    if(fd == -1) return -1;
-
-    int sigFileSize = sigFileStat.st_size;
-    char* buffer = malloc(sigFileSize);
-    if (!buffer) {
-        perror("Error:");
+    if(fd == -1) {
+        perror("Error");
         return -1;
     }
 
-    memset(buffer, 0, sigFileSize);
+    int sigFileSize = sigFileStat.st_size;
+    fileBuffer = malloc(sigFileSize);
+    if (!fileBuffer) {
+        perror("Memory Allocation Error");
+        return -1;
+    }
 
-    if (read(fd, buffer, sigFileSize) < 65) {
+    memset(fileBuffer, 0, sigFileSize);
+
+    if (read(fd, fileBuffer, sigFileSize) < 65) {
         perror("Digest in File is too small!");
         return -1;
     }
 
+    close(fd);
+
+    return 0;
+}
+
+int compareDigest (char* digestResult, int isFile, char* sigCarrier) {
+    char* checksum = NULL;
+
+    if (isFile == 1) {
+        if (digestSigFile(sigCarrier) == -1) return -1;
+        printf("SHA256 sum from the signature file:\n\n %s\n\n", fileBuffer);
+    } else {
+        checksum = sigCarrier;
+        printf("Given SHA256 sum:\n\n %s\n\n", checksum);
+    }
+
+    printf("SHA256 sum of the image file:\n\n %s\n\n", digestResult);
+
+    if (fileBuffer) checksum = fileBuffer;
+
     // Compare sha256 hashes which are 64 bytes!
-    if (strncmp(digestResult, buffer, 64) != 0) {
-        printf("Warning: sha256 digests differ!\n");
+    if (strncmp(digestResult, checksum, 64) != 0) {
+        printf("!!! WARNING: SHA256 DIGESTS DIFFER !!!\n\n");
         return -1;
     }
 
-    printf("sha256 digests match!\n");
+    printf("SHA256 digests match!\n");
 
-    free(buffer);
-    close(fd);
+    free(fileBuffer);
 
     return 0;
 }

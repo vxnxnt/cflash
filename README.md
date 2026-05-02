@@ -31,3 +31,10 @@ For example, you could do the following if you want to flash `/dev/sda` with a D
 ```
 cflash debian-12.11.0-amd64-netinst.iso /dev/sda
 ```
+
+To verify the validity of a boot image's SHA256 checksum, use the `-s` or `-f` option.
+The former allows you to parse a SHA256 hash to cflash, while the latter allows a file containing the hash to be read.
+```
+cflash -s e36e08961573d9388c7f225e1f47e1b31052a2e061510b6e91d3edc730c06ee8 alpine-extended-3.23.3-x86_64.iso
+cflash -f alpine-extended-3.23.3-x86_64.iso.sha256 alpine-extended-3.23.3-x86_64.iso
+```
